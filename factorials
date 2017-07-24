@@ -1,0 +1,52 @@
+#!/bin/bash
+
+number=9
+points=0
+
+parse_attributes() {
+while [[ $# > 0 ]] ; do
+  case "$1" in
+    -n|--number) 
+      number=${2}
+      shift
+      ;;
+  esac
+  shift
+done
+}
+parse_attributes "$@"
+
+if [ ! -f ~/.factorials_high_score ]; then
+  echo "0" > ~/.factorials_high_score
+  high_score=0
+else
+  high_score=$(cat ~/.factorials_high_score)
+fi
+
+
+for i in $(seq 1 $number); do
+  random_number=$(( 3 + $RANDOM % 4 )) # 2-7
+  echo "What is the factorial for $random_number?"
+  result=$(echo "define f(x) {if (x>1){return x*f(x-1)};return 1} f($random_number)" | bc)
+  read user_input
+
+  if [ "$user_input" == "$result" ]; then
+    echo "Correct!"
+    echo ""
+    points=$(($points + 10))
+  else
+    echo "Inorrect. It's actually $result."
+    echo ""
+    points=$(($points - 10))
+  fi
+done
+
+score=$(($points - $SECONDS))
+
+if [ $score -gt $high_score ]; then
+  high_score=$score
+  echo "$high_score" > ~/.factorials_high_score
+  echo "You set a new high score of $high_score"
+fi
+
+echo "Your score is $score. The High score is $high_score"
